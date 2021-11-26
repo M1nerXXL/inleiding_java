@@ -1,9 +1,9 @@
-size(1280,720);
+size(750,350);
 background(255,255,255);
 
 //input variables setup
-  float weight_kg = 60;
-  float height_cm = 165;
+  float weight_kg = 80;
+  float height_cm = 180;
 
 //other variables setup
   float height_m = height_cm / 100;
@@ -61,14 +61,53 @@ background(255,255,255);
     text("- 25",501,145);
     text("- 18,5",501,210);
     
+//BMI value shadow
+  //placed here because the color gets changed for a while in the next section, while the shadow needs to be black.
+  float bmi_rounded = bmi;
+    bmi_rounded = bmi_rounded * 10;
+    bmi_rounded = round(bmi_rounded);
+    bmi_rounded = bmi_rounded / 10;
+  textSize(50);
+  fill(50,50,50);
+    text(nf(bmi_rounded,0,1),572,122);
+    
+//color arrow and value
+  if(bmi < 18.5){
+    fill(0,0,255);
+  }else if(bmi < 25){
+    fill(0,255,0);
+  }else if(bmi < 30){
+    fill(255,150,0);
+  }else if(bmi >= 30){
+    fill(255,0,0);
+  }
 //BMI arrow
   float arrow_height = 390 - bmi * 10;
-  fill(255,255,255);
   strokeWeight(1);
     if(bmi <= 37 && bmi >= 11){
       triangle(442,arrow_height-5,442,arrow_height+5,456,arrow_height);
-    }if(bmi > 37){
+    }else if(bmi > 37){
       triangle(442,15,442,25,456,20);
-    }if(bmi < 11){
+    }else if(bmi < 11){
       triangle(442,275,442,285,456,280);
     }
+
+//BMI value
+  textSize(50);
+    text(nf(bmi_rounded,0,1),570,120);
+  textSize(25);
+    if(bmi < 18.5){
+      text("Underweight",570,150);
+    }else if(bmi < 25){
+      text("Healthy weight",570,150);
+    }else if(bmi < 30){
+      text("Overweight",570,150);
+    }else if(bmi >= 30){
+      text("Obese",570,150);
+    }
+  
+//extra information
+  textSize(15);
+  fill(150,150,150);
+    text("Results most accurate for people between the ages of 19-69 years",20,310);
+    text("Scale and formula taken from www.voedingscentrum.nl",20,325);
