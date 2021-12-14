@@ -3,24 +3,35 @@ ControlP5 cp;
 PImage body;
 PImage head;
 PImage headX;
-PImage apple;
+PImage greenApple;
+PImage goldenApple;
 PImage crown;
+PImage star;
 int[] bodyX = {200,150,100};
 int[] bodyY = {100,100,100};
 int[] bodyX2 = {0,0,0};
 int[] bodyY2 = {0,0,0};
 int greenAppleX;
 int greenAppleY;
+int goldenAppleX;
+int goldenAppleY;
 int greenApples = 0;
+int goldenApples = 0;
+int goldenAppleTime;
+int goldenAppleDuration;
 int score = 0;
 int highScore = 0;
+int timeStart = 0;
+int timePlaying = 0;
 float direction = 1.5;  //0 down, 0.5 left, 1 up, 1.5 right
 float input = 1.5;
-boolean newApple = true;
+boolean newGreenApple = true;
+boolean newGoldenApple = true;
+boolean newAppleTimer = true;
 boolean playing = true;
 boolean title = false;
 boolean gameOver = false;
-boolean torus = false;
+boolean torus = true;
 
 void setup(){
   cp = new ControlP5(this);
@@ -29,8 +40,10 @@ void setup(){
   body = loadImage("images/body.png");
   head = loadImage("images/head.png");
   headX = loadImage("images/headX.png");
-  apple = loadImage("images/apple.png");
+  greenApple = loadImage("images/greenApple.png");
+  goldenApple = loadImage("images/goldenApple.png");
   crown = loadImage("images/crown.png");
+  star = loadImage("images/star.png");
 }
 
 void draw(){
@@ -127,11 +140,23 @@ void draw(){
   //Head
   translate(bodyX[0],bodyY[0]);
   rotate(direction*PI);
-  image(head,-20,-20);
+  if(gameOver){
+    image(headX,-20,-20);
+  }else{
+    image(head,-20,-20);
+  }
   rotate(-direction*PI);
   translate(-bodyX[0],-bodyY[0]);
   
-  //Apple eaten
+  //Bumping into self
+  for(int i=1; i<bodyX.length; i++){
+    if(bodyX[0] == bodyX[i] && bodyY[0] == bodyY[i]){
+      playing = false;
+      gameOver = true;
+    }
+  }
+  
+  //Green apple eaten
   if(bodyX[0] == greenAppleX+20 && bodyY[0] == greenAppleY+20){
     score++;
     greenApples++;
@@ -139,20 +164,63 @@ void draw(){
     bodyY = append(bodyY,0);
     bodyX2 = append(bodyX2,0);
     bodyY2 = append(bodyY2,0);
-    newApple = true;
+    newGreenApple = true;
   }
   
-  //Apple spawn
-  if(playing && newApple){
+  //Green apple spawn
+  if(playing && newGreenApple){
     greenAppleX = int(random(16))*50+30;
     greenAppleY = int(random(16))*50+30;
-    newApple = false;
+    newGreenApple = false;
   }
-  image(apple,greenAppleX,greenAppleY);
-
+  image(greenApple,greenAppleX,greenAppleY);
+  
+  //Golden apple eaten
+  if(bodyX[0] == goldenAppleX+20 && bodyY[0] == goldenAppleY+20){
+    score += 2;
+    goldenApples++;
+    bodyX = append(bodyX,1000);
+    bodyY = append(bodyY,0);
+    bodyX2 = append(bodyX2,0);
+    bodyY2 = append(bodyY2,0);
+    goldenAppleX = 0;
+    goldenAppleY = 0;
+    newAppleTimer = true;
+    newGoldenApple = true;
+    timeStart = millis();
+  }
+  
+  //Golden apple spawn
+  timePlaying = millis()-timeStart;
+  if(newAppleTimer){
+    goldenAppleTime = int(random(10000,40000));
+    goldenAppleDuration = int(random(3000,6000));
+    newAppleTimer = false;
+  }
+  if(playing && timePlaying >= goldenAppleTime && timePlaying <= goldenAppleTime + goldenAppleDuration){
+    if(newGoldenApple){
+      goldenAppleX = int(random(16))*50+30;
+      goldenAppleY = int(random(16))*50+30;
+      newGoldenApple = false;
+    }
+    image(goldenApple,goldenAppleX,goldenAppleY);
+  }
+  if(goldenAppleTime + goldenAppleDuration < timePlaying){
+    newAppleTimer = true;
+    newGoldenApple = true;
+    timeStart = millis();
+  }
   //Score
-  textSize(30);
-  text("Score: " + score,50,900);
+  if(score > highScore){
+    highScore = score;
+  }
+  if(playing){
+    textSize(30);
+    image(star,50,865);
+    text(" " + score,90,900);
+    image(crown,200,865);
+    text(" " + highScore,240,900);
+  }
 }
 
 void keyPressed(){
