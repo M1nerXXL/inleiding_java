@@ -1,5 +1,10 @@
 import controlP5.*;
 ControlP5 cp;
+
+Button retry;
+Button toTitle;
+
+PFont arial;
 PImage body;
 PImage head;
 PImage headX;
@@ -11,6 +16,7 @@ int[] bodyX = {200,150,100};
 int[] bodyY = {100,100,100};
 int[] bodyX2 = {0,0,0};
 int[] bodyY2 = {0,0,0};
+String[] savedInfo = new String[1];
 int greenAppleX;
 int greenAppleY;
 int goldenAppleX;
@@ -23,6 +29,8 @@ int score = 0;
 int highScore = 0;
 int timeStart = 0;
 int timePlaying = 0;
+int timeGameOver;
+int gameOverTimer;
 float direction = 1.5;  //0 down, 0.5 left, 1 up, 1.5 right
 float input = 1.5;
 boolean newGreenApple = true;
@@ -31,12 +39,15 @@ boolean newAppleTimer = true;
 boolean playing = true;
 boolean title = false;
 boolean gameOver = false;
-boolean torus = true;
+boolean torus = false;
 
 void setup(){
   cp = new ControlP5(this);
   frameRate(10);
   size(850,950);
+  
+  arial = createFont("arial",30);
+  
   body = loadImage("images/body.png");
   head = loadImage("images/head.png");
   headX = loadImage("images/headX.png");
@@ -44,11 +55,44 @@ void setup(){
   goldenApple = loadImage("images/goldenApple.png");
   crown = loadImage("images/crown.png");
   star = loadImage("images/star.png");
+  
+  retry = cp.addButton("retry")
+            .setPosition(100,600)
+            .setSize(275,150)
+            .setColorBackground(color(100))
+            .setColorForeground(color(150))
+            .setColorActive(color(50))
+            .setFont(arial)
+            .setLabel("Retry");
+  toTitle = cp.addButton("toTitle")
+              .setPosition(475,600)
+              .setSize(275,150)
+              .setColorBackground(color(100))
+              .setColorForeground(color(150))
+              .setColorActive(color(50))
+              .setFont(arial)
+              .setLabel("Back to title");
 }
 
 void draw(){
   background(0);
   direction = input;
+  savedInfo = loadStrings("data/data.txt");
+  highScore = int(savedInfo[0]);
+  
+  //Buttons
+  if(title){
+    retry.hide();
+    toTitle.hide();
+  }
+  if(gameOver){
+    retry.show();
+    toTitle.show();
+  }
+  if(playing){
+    retry.hide();
+    toTitle.hide();
+  }
   
   //Movement
   if(playing){
@@ -177,13 +221,13 @@ void draw(){
   
   //Golden apple eaten
   if(bodyX[0] == goldenAppleX+20 && bodyY[0] == goldenAppleY+20){
-    score += 2;
+    score += 3;
     goldenApples++;
     bodyX = append(bodyX,1000);
     bodyY = append(bodyY,0);
     bodyX2 = append(bodyX2,0);
     bodyY2 = append(bodyY2,0);
-    goldenAppleX = 0;
+    goldenAppleX = 1000;
     goldenAppleY = 0;
     newAppleTimer = true;
     newGoldenApple = true;
@@ -216,25 +260,56 @@ void draw(){
   }
   if(playing){
     textSize(30);
+    textAlign(LEFT);
     image(star,50,865);
     text(" " + score,90,900);
     image(crown,200,865);
     text(" " + highScore,240,900);
+    textAlign(RIGHT);
+    image(greenApple,610,865);
+    text(greenApples + "x ",610,900);
+    image(goldenApple,760,865);
+    text(goldenApples + "x ",760,900);
+  }
+  savedInfo[0] = String.valueOf(highScore);
+  saveStrings("data/data.txt",savedInfo);
+  
+  //Game Over
+  if(gameOver){
+    goldenAppleX = 1000;
+    fill(0,0,0,200);
+    rect(0,0,850,950);
+    fill(255);
+    textSize(100);
+    textAlign(CENTER);
+    text("GAME",400,200);
+    text("OVER",450,270);
+    textSize(30);
+    textAlign(LEFT);
+    image(star,200,350);
+    text(" " + score,240,385);
+    image(crown,200,420);
+    text(" " + highScore,240,455);
+    textAlign(RIGHT);
+    image(greenApple,610,350);
+    text(greenApples + "x ",610,385);
+    image(goldenApple,610,420);
+    text(goldenApples + "x ",610,455);
   }
 }
 
 void keyPressed(){
   if(playing){
-    if(keyCode == 37 && direction != 1.5){
+    if(key == 'a' || keyCode == 37 && direction != 1.5){
       input = 0.5;
     }
-    if(keyCode == 38 && direction != 0){
+    if(key == 'w' || keyCode == 38 && direction != 0){
       input = 1;
     }
-    if(keyCode == 39 && direction != 0.5){
+    if(key == 'd' || keyCode == 39 && direction != 0.5){
       input = 1.5;
     }
-    if(keyCode == 40 && direction != 1){
+    if(key == 's' || keyCode == 40 && direction != 1){
       input = 0;
     }
   }
