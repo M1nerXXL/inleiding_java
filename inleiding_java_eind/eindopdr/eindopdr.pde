@@ -3,9 +3,18 @@ ControlP5 cp;
 
 Button retryButton;
 Button toTitleButton;
+Button normalButton;
+Button portalButton;
+Button redButton;
+Button greenButton;
+Button blueButton;
+Button playButton;
 
 PFont arial;
 PFont bebasNeue;
+PImage[] redButtonImages = new PImage[3];
+PImage[] greenButtonImages = new PImage[3];
+PImage[] blueButtonImages = new PImage[3];
 PImage title;
 PImage body;
 PImage head;
@@ -18,7 +27,6 @@ int[] bodyX = {200,150,100};
 int[] bodyY = {100,100,100};
 int[] bodyX2 = {0,0,0};
 int[] bodyY2 = {0,0,0};
-String[] savedInfo;
 int greenAppleX;
 int greenAppleY;
 int goldenAppleX;
@@ -30,34 +38,32 @@ int goldenAppleDuration;
 int score = 0;
 int highScoreNormal = 0;
 int highScorePortal = 0;
-boolean newHighScore = false;
 int timeStart = 0;
 int timePlaying = 0;
 int timeGameOver;
 int gameOverTimer;
 int shortening;
+int snakeColor = 0; //0 red, 1 green, 2 blue
 float direction = 1.5;  //0 down, 0.5 left, 1 up, 1.5 right
 float input = 1.5;
+String[] savedInfo = new String[2];
+boolean newHighScore = false;
 boolean newGreenApple = true;
 boolean newGoldenApple = true;
 boolean newAppleTimer = true;
 boolean playing = false;
 boolean titleScreen = true;
 boolean gameOver = false;
-boolean portal = false;
+boolean portal = true;
 
 void setup(){
   cp = new ControlP5(this);
-  frameRate(10);
   size(850,950);
   
   arial = createFont("arial",30);
   bebasNeue = createFont("fonts/BebasNeue-Regular.ttf",30);
   
   title = loadImage("images/title.png");
-  body = loadImage("images/body.png");
-  head = loadImage("images/head.png");
-  headX = loadImage("images/headX.png");
   greenApple = loadImage("images/greenApple.png");
   goldenApple = loadImage("images/goldenApple.png");
   crown = loadImage("images/crown.png");
@@ -65,41 +71,173 @@ void setup(){
   
   retryButton = cp.addButton("retry")
                   .setPosition(100,600)
-                  .setSize(275,150)
+                  .setSize(300,150)
                   .setColorBackground(color(100))
                   .setColorForeground(color(150))
                   .setColorActive(color(50))
                   .setFont(arial)
-                  .setLabel("Retry");
+                  .setLabel("Retry (R)");
   toTitleButton = cp.addButton("toTitle")
-                    .setPosition(475,600)
-                    .setSize(275,150)
+                    .setPosition(450,600)
+                    .setSize(300,150)
                     .setColorBackground(color(100))
                     .setColorForeground(color(150))
                     .setColorActive(color(50))
                     .setFont(arial)
-                    .setLabel("Back to title");
+                    .setLabel("Back to title (T)");
+  normalButton = cp.addButton("normal")
+                   .setPosition(75,490)
+                   .setSize(145,90)
+                   .setFont(arial)
+                   .setLabel("Normal");
+  portalButton = cp.addButton("portal")
+                   .setPosition(230,490)
+                   .setSize(145,90)
+                   .setFont(arial)
+                   .setLabel("Portal");
+  redButton = cp.addButton("red")
+                .setPosition(450,490)
+                .setSize(90,90)
+                .setColorBackground(color(100))
+                .setColorForeground(color(150))
+                .setColorActive(color(50))
+                .setFont(arial);
+  greenButton = cp.addButton("green")
+                   .setPosition(550,490)
+                   .setSize(90,90)
+                   .setColorBackground(color(100))
+                   .setColorForeground(color(150))
+                   .setColorActive(color(50))
+                   .setFont(arial);
+  blueButton = cp.addButton("blue")
+                 .setPosition(650,490)
+                 .setSize(90,90)
+                 .setColorBackground(color(100))
+                 .setColorForeground(color(150))
+                 .setColorActive(color(50))
+                 .setFont(arial);
+  playButton = cp.addButton("play")
+                  .setPosition(75,675)
+                  .setSize(700,200)
+                  .setColorBackground(color(200,0,0))
+                  .setColorForeground(color(250,0,0))
+                  .setColorActive(color(150,0,0))
+                  .setFont(arial)
+                  .setLabel("Start");
 }
 
 void draw(){
   background(0);
   direction = input;
-  savedInfo = loadStrings("data/data.txt");
+  
+  savedInfo[0] = String.valueOf(highScoreNormal);
+  savedInfo[1] = String.valueOf(highScorePortal);
+  saveStrings("saveData/highScores.txt",savedInfo);
+  savedInfo = loadStrings("saveData/highScores.txt");
   highScoreNormal = int(savedInfo[0]);
   highScorePortal = int(savedInfo[1]);
+  
+  if(playing){
+    frameRate(10);
+  }else{
+    frameRate(60);
+  }
+  
+  //Button color and images
+  if(portal){
+  normalButton.setColorBackground(color(100))
+              .setColorForeground(color(150))
+              .setColorActive(color(50));
+  portalButton.setColorBackground(color(0,0,255))
+              .setColorForeground(color(0,0,255))
+              .setColorActive(color(0,0,255));
+  }else{
+  normalButton.setColorBackground(color(0,0,255))
+              .setColorForeground(color(0,0,255))
+              .setColorActive(color(0,0,255));
+  portalButton.setColorBackground(color(100))
+              .setColorForeground(color(150))
+              .setColorActive(color(50));
+  }
+  
+  if(snakeColor == 0){
+    redButtonImages[0] = loadImage("images/buttons/redOn.png");
+    redButtonImages[1] = loadImage("images/buttons/redOn.png");
+    redButtonImages[2] = loadImage("images/buttons/redOn.png");
+  }else{
+    redButtonImages[0] = loadImage("images/buttons/redOff.png");
+    redButtonImages[1] = loadImage("images/buttons/redOn.png");
+    redButtonImages[2] = loadImage("images/buttons/redOff.png");
+  }
+  redButton.setImages(redButtonImages);
+  
+  if(snakeColor == 1){
+    greenButtonImages[0] = loadImage("images/buttons/redOn.png");
+    greenButtonImages[1] = loadImage("images/buttons/redOn.png");
+    greenButtonImages[2] = loadImage("images/buttons/redOn.png");
+  }else{
+    greenButtonImages[0] = loadImage("images/buttons/redOff.png");
+    greenButtonImages[1] = loadImage("images/buttons/redOn.png");
+    greenButtonImages[2] = loadImage("images/buttons/redOff.png");
+  }
+  greenButton.setImages(greenButtonImages);
+  
+  if(snakeColor == 2){
+    blueButtonImages[0] = loadImage("images/buttons/redOn.png");
+    blueButtonImages[1] = loadImage("images/buttons/redOn.png");
+    blueButtonImages[2] = loadImage("images/buttons/redOn.png");
+  }else{
+    blueButtonImages[0] = loadImage("images/buttons/redOff.png");
+    blueButtonImages[1] = loadImage("images/buttons/redOn.png");
+    blueButtonImages[2] = loadImage("images/buttons/redOff.png");
+  }
+  blueButton.setImages(blueButtonImages);
+  
+  //Snake color
+  if(snakeColor == 0){
+    body = loadImage("images/redBody.png");
+    head = loadImage("images/redHead.png");
+    headX = loadImage("images/redHeadX.png");
+  }else if(snakeColor == 1){
+    body = loadImage("images/redBody.png");
+    head = loadImage("images/redHead.png");
+    headX = loadImage("images/redHeadX.png");
+  }else{
+    body = loadImage("images/redBody.png");
+    head = loadImage("images/redHead.png");
+    headX = loadImage("images/redHeadX.png");
+  }
   
   //Buttons
   if(titleScreen){
     retryButton.hide();
     toTitleButton.hide();
+    normalButton.show();
+    portalButton.show();
+    redButton.show();
+    greenButton.hide();
+    blueButton.hide();
+    playButton.show();
   }
   if(gameOver){
     retryButton.show();
     toTitleButton.show();
+    normalButton.hide();
+    portalButton.hide();
+    redButton.hide();
+    greenButton.hide();
+    blueButton.hide();
+    playButton.hide();
   }
   if(playing){
     retryButton.hide();
     toTitleButton.hide();
+    normalButton.hide();
+    portalButton.hide();
+    redButton.hide();
+    greenButton.hide();
+    blueButton.hide();
+    playButton.hide();
   }
   
   //Movement
@@ -262,6 +400,7 @@ void draw(){
     newGoldenApple = true;
     timeStart = millis();
   }
+  
   //Score
   if(score > highScoreNormal && !portal){
     highScoreNormal = score;
@@ -289,9 +428,6 @@ void draw(){
     image(goldenApple,760,865);
     text(goldenApples + "x ",760,900);
   }
-  savedInfo[0] = String.valueOf(highScoreNormal);
-  savedInfo[1] = String.valueOf(highScorePortal);
-  saveStrings("data/data.txt",savedInfo);
   
   //Game Over
   if(gameOver){
@@ -334,13 +470,17 @@ void draw(){
     fill(0);
     rect(0,0,850,950);
     image(title,125,170,600,200);
+    textAlign(LEFT);
     fill(200);
     textSize(35);
     text("Low budget",315,240); 
     fill(255);
     textSize(25);
-    text("Gamemode:",100,450);
-    text("Color:",425,450);
+    text("Gamemode:",75,480);
+    text("Color:",450,480);
+    textFont(arial);
+    textSize(15);
+    text("version 1.1.1",5,945);
   }
 }
 
@@ -359,9 +499,28 @@ void keyPressed(){
       input = 0;
     }
   }
+  if(gameOver){
+    if(key == 'r'){
+      reset();
+      gameOver = false;
+      playing = true;
+    }
+  }
 }
 
 void retry(){
+  reset();
+  gameOver = false;
+  playing = true;
+}
+
+void toTitle(){
+  reset();
+  gameOver = false;
+  titleScreen = true;
+}
+
+void reset(){
   shortening = bodyX.length-3;
   for(int i=0; i<shortening; i++){
     bodyX = shorten(bodyX);
@@ -379,6 +538,29 @@ void retry(){
   score = 0;
   greenApples = 0;
   goldenApples = 0;
-  gameOver = false;
+}
+
+void normal(){
+  portal = false;
+}
+
+void portal(){
+  portal = true;
+}
+
+void red(){
+  snakeColor = 0;
+}
+
+void green(){
+  snakeColor = 1;
+}
+
+void blue(){
+  snakeColor = 2;
+}
+
+void play(){
+  titleScreen = false;
   playing = true;
 }
