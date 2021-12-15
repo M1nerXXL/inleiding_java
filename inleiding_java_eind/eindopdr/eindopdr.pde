@@ -1,10 +1,12 @@
 import controlP5.*;
 ControlP5 cp;
 
-Button retry;
-Button toTitle;
+Button retryButton;
+Button toTitleButton;
 
 PFont arial;
+PFont bebasNeue;
+PImage title;
 PImage body;
 PImage head;
 PImage headX;
@@ -16,7 +18,7 @@ int[] bodyX = {200,150,100};
 int[] bodyY = {100,100,100};
 int[] bodyX2 = {0,0,0};
 int[] bodyY2 = {0,0,0};
-String[] savedInfo = new String[1];
+String[] savedInfo;
 int greenAppleX;
 int greenAppleY;
 int goldenAppleX;
@@ -26,20 +28,23 @@ int goldenApples = 0;
 int goldenAppleTime;
 int goldenAppleDuration;
 int score = 0;
-int highScore = 0;
+int highScoreNormal = 0;
+int highScorePortal = 0;
+boolean newHighScore = false;
 int timeStart = 0;
 int timePlaying = 0;
 int timeGameOver;
 int gameOverTimer;
+int shortening;
 float direction = 1.5;  //0 down, 0.5 left, 1 up, 1.5 right
 float input = 1.5;
 boolean newGreenApple = true;
 boolean newGoldenApple = true;
 boolean newAppleTimer = true;
-boolean playing = true;
-boolean title = false;
+boolean playing = false;
+boolean titleScreen = true;
 boolean gameOver = false;
-boolean torus = false;
+boolean portal = false;
 
 void setup(){
   cp = new ControlP5(this);
@@ -47,7 +52,9 @@ void setup(){
   size(850,950);
   
   arial = createFont("arial",30);
+  bebasNeue = createFont("fonts/BebasNeue-Regular.ttf",30);
   
+  title = loadImage("images/title.png");
   body = loadImage("images/body.png");
   head = loadImage("images/head.png");
   headX = loadImage("images/headX.png");
@@ -56,42 +63,43 @@ void setup(){
   crown = loadImage("images/crown.png");
   star = loadImage("images/star.png");
   
-  retry = cp.addButton("retry")
-            .setPosition(100,600)
-            .setSize(275,150)
-            .setColorBackground(color(100))
-            .setColorForeground(color(150))
-            .setColorActive(color(50))
-            .setFont(arial)
-            .setLabel("Retry");
-  toTitle = cp.addButton("toTitle")
-              .setPosition(475,600)
-              .setSize(275,150)
-              .setColorBackground(color(100))
-              .setColorForeground(color(150))
-              .setColorActive(color(50))
-              .setFont(arial)
-              .setLabel("Back to title");
+  retryButton = cp.addButton("retry")
+                  .setPosition(100,600)
+                  .setSize(275,150)
+                  .setColorBackground(color(100))
+                  .setColorForeground(color(150))
+                  .setColorActive(color(50))
+                  .setFont(arial)
+                  .setLabel("Retry");
+  toTitleButton = cp.addButton("toTitle")
+                    .setPosition(475,600)
+                    .setSize(275,150)
+                    .setColorBackground(color(100))
+                    .setColorForeground(color(150))
+                    .setColorActive(color(50))
+                    .setFont(arial)
+                    .setLabel("Back to title");
 }
 
 void draw(){
   background(0);
   direction = input;
   savedInfo = loadStrings("data/data.txt");
-  highScore = int(savedInfo[0]);
+  highScoreNormal = int(savedInfo[0]);
+  highScorePortal = int(savedInfo[1]);
   
   //Buttons
-  if(title){
-    retry.hide();
-    toTitle.hide();
+  if(titleScreen){
+    retryButton.hide();
+    toTitleButton.hide();
   }
   if(gameOver){
-    retry.show();
-    toTitle.show();
+    retryButton.show();
+    toTitleButton.show();
   }
   if(playing){
-    retry.hide();
-    toTitle.hide();
+    retryButton.hide();
+    toTitleButton.hide();
   }
   
   //Movement
@@ -116,7 +124,7 @@ void draw(){
   }
   
   //Bounds
-  if(torus){
+  if(portal){
     for(int i=0; i<bodyX.length; i++){
       if(bodyX[i] > 825){
         bodyX[i] -= 800;
@@ -132,7 +140,7 @@ void draw(){
       }
     }
   }
-  if(!torus){
+  if(!portal){
     for(int i=1; i<bodyX.length; i++){
       if(bodyX[0] > 825 || bodyX[0] < 25 || bodyY[0] > 825 || bodyY[0] < 25){
         playing = false;
@@ -165,12 +173,12 @@ void draw(){
     line(25,25+50*i,825,25+50*i);
   }
   strokeWeight(3);
-  if(torus){
+  if(portal){
     stroke(100,100,255);
   }
   line(25,25,825,25);
   line(25,825,825,825);
-  if(torus){
+  if(portal){
     stroke(255,150,0);
   }
   line(25,25,25,825);
@@ -255,23 +263,34 @@ void draw(){
     timeStart = millis();
   }
   //Score
-  if(score > highScore){
-    highScore = score;
+  if(score > highScoreNormal && !portal){
+    highScoreNormal = score;
+    newHighScore = true;
   }
+  if(score > highScorePortal && portal){
+    highScorePortal = score;
+    newHighScore = true;
+  }
+  textFont(bebasNeue);
   if(playing){
     textSize(30);
     textAlign(LEFT);
     image(star,50,865);
     text(" " + score,90,900);
     image(crown,200,865);
-    text(" " + highScore,240,900);
+    if(portal){
+      text(" " + highScorePortal,240,900);
+    }else{
+      text(" " + highScoreNormal,240,900);
+    }
     textAlign(RIGHT);
     image(greenApple,610,865);
     text(greenApples + "x ",610,900);
     image(goldenApple,760,865);
     text(goldenApples + "x ",760,900);
   }
-  savedInfo[0] = String.valueOf(highScore);
+  savedInfo[0] = String.valueOf(highScoreNormal);
+  savedInfo[1] = String.valueOf(highScorePortal);
   saveStrings("data/data.txt",savedInfo);
   
   //Game Over
@@ -282,19 +301,46 @@ void draw(){
     fill(255);
     textSize(100);
     textAlign(CENTER);
-    text("GAME",400,200);
-    text("OVER",450,270);
+    text("GAME",400,170);
+    text("OVER",450,245);
+    textSize(50);
+    if(newHighScore){
+      fill(255,100,0);
+      text("New high score!",426,311);
+      fill(255,200,0);
+      text("New high score!",425,310);
+    }
+    fill(255);
     textSize(30);
     textAlign(LEFT);
     image(star,200,350);
     text(" " + score,240,385);
     image(crown,200,420);
-    text(" " + highScore,240,455);
+    if(portal){
+      text(" " + highScorePortal,240,455);
+    }else{
+      text(" " + highScoreNormal,240,455);
+    }
     textAlign(RIGHT);
     image(greenApple,610,350);
     text(greenApples + "x ",610,385);
     image(goldenApple,610,420);
     text(goldenApples + "x ",610,455);
+  }
+  
+  //Title
+  if(titleScreen){
+    goldenAppleX = 1000;
+    fill(0);
+    rect(0,0,850,950);
+    image(title,125,170,600,200);
+    fill(200);
+    textSize(35);
+    text("Low budget",315,240); 
+    fill(255);
+    textSize(25);
+    text("Gamemode:",100,450);
+    text("Color:",425,450);
   }
 }
 
@@ -313,4 +359,26 @@ void keyPressed(){
       input = 0;
     }
   }
+}
+
+void retry(){
+  shortening = bodyX.length-3;
+  for(int i=0; i<shortening; i++){
+    bodyX = shorten(bodyX);
+    bodyX2 = shorten(bodyX2);
+    bodyY = shorten(bodyY);
+    bodyY2 = shorten(bodyY2);
+  }
+  input = 1.5;
+  bodyX[0] = 200;
+  bodyX[1] = 150;
+  bodyX[2] = 100;
+  bodyY[0] = 100;
+  bodyY[1] = 100;
+  bodyY[2] = 100;
+  score = 0;
+  greenApples = 0;
+  goldenApples = 0;
+  gameOver = false;
+  playing = true;
 }
