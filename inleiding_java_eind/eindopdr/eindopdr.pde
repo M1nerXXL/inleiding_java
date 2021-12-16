@@ -54,7 +54,7 @@ boolean newAppleTimer = true;
 boolean playing = false;
 boolean titleScreen = true;
 boolean gameOver = false;
-boolean portal = true;
+boolean portal = false;
 
 void setup(){
   cp = new ControlP5(this);
@@ -130,9 +130,6 @@ void draw(){
   background(0);
   direction = input;
   
-  savedInfo[0] = String.valueOf(highScoreNormal);
-  savedInfo[1] = String.valueOf(highScorePortal);
-  saveStrings("saveData/highScores.txt",savedInfo);
   savedInfo = loadStrings("saveData/highScores.txt");
   highScoreNormal = int(savedInfo[0]);
   highScorePortal = int(savedInfo[1]);
@@ -172,24 +169,24 @@ void draw(){
   redButton.setImages(redButtonImages);
   
   if(snakeColor == 1){
-    greenButtonImages[0] = loadImage("images/buttons/redOn.png");
-    greenButtonImages[1] = loadImage("images/buttons/redOn.png");
-    greenButtonImages[2] = loadImage("images/buttons/redOn.png");
+    greenButtonImages[0] = loadImage("images/buttons/greenOn.png");
+    greenButtonImages[1] = loadImage("images/buttons/greenOn.png");
+    greenButtonImages[2] = loadImage("images/buttons/greenOn.png");
   }else{
-    greenButtonImages[0] = loadImage("images/buttons/redOff.png");
-    greenButtonImages[1] = loadImage("images/buttons/redOn.png");
-    greenButtonImages[2] = loadImage("images/buttons/redOff.png");
+    greenButtonImages[0] = loadImage("images/buttons/greenOff.png");
+    greenButtonImages[1] = loadImage("images/buttons/greenOn.png");
+    greenButtonImages[2] = loadImage("images/buttons/greenOff.png");
   }
   greenButton.setImages(greenButtonImages);
   
   if(snakeColor == 2){
-    blueButtonImages[0] = loadImage("images/buttons/redOn.png");
-    blueButtonImages[1] = loadImage("images/buttons/redOn.png");
-    blueButtonImages[2] = loadImage("images/buttons/redOn.png");
+    blueButtonImages[0] = loadImage("images/buttons/blueOn.png");
+    blueButtonImages[1] = loadImage("images/buttons/blueOn.png");
+    blueButtonImages[2] = loadImage("images/buttons/blueOn.png");
   }else{
-    blueButtonImages[0] = loadImage("images/buttons/redOff.png");
-    blueButtonImages[1] = loadImage("images/buttons/redOn.png");
-    blueButtonImages[2] = loadImage("images/buttons/redOff.png");
+    blueButtonImages[0] = loadImage("images/buttons/blueOff.png");
+    blueButtonImages[1] = loadImage("images/buttons/blueOn.png");
+    blueButtonImages[2] = loadImage("images/buttons/blueOff.png");
   }
   blueButton.setImages(blueButtonImages);
   
@@ -199,13 +196,13 @@ void draw(){
     head = loadImage("images/redHead.png");
     headX = loadImage("images/redHeadX.png");
   }else if(snakeColor == 1){
-    body = loadImage("images/redBody.png");
-    head = loadImage("images/redHead.png");
-    headX = loadImage("images/redHeadX.png");
+    body = loadImage("images/greenBody.png");
+    head = loadImage("images/greenHead.png");
+    headX = loadImage("images/greenHeadX.png");
   }else{
-    body = loadImage("images/redBody.png");
-    head = loadImage("images/redHead.png");
-    headX = loadImage("images/redHeadX.png");
+    body = loadImage("images/blueBody.png");
+    head = loadImage("images/blueHead.png");
+    headX = loadImage("images/blueHeadX.png");
   }
   
   //Buttons
@@ -215,8 +212,8 @@ void draw(){
     normalButton.show();
     portalButton.show();
     redButton.show();
-    greenButton.hide();
-    blueButton.hide();
+    greenButton.show();
+    blueButton.show();
     playButton.show();
   }
   if(gameOver){
@@ -410,6 +407,9 @@ void draw(){
     highScorePortal = score;
     newHighScore = true;
   }
+  savedInfo[0] = String.valueOf(highScoreNormal);
+  savedInfo[1] = String.valueOf(highScorePortal);
+  saveStrings("saveData/highScores.txt",savedInfo);
   textFont(bebasNeue);
   if(playing){
     textSize(30);
@@ -505,6 +505,11 @@ void keyPressed(){
       gameOver = false;
       playing = true;
     }
+    if(key == 't'){
+      reset();
+      gameOver = false;
+      titleScreen = true;
+    }
   }
 }
 
@@ -538,6 +543,7 @@ void reset(){
   score = 0;
   greenApples = 0;
   goldenApples = 0;
+  newHighScore = false;
 }
 
 void normal(){
