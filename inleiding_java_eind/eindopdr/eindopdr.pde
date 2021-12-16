@@ -49,6 +49,8 @@ float input = 1.5;
 String[] savedInfo = new String[2];
 boolean newHighScore = false;
 boolean newGreenApple = true;
+boolean respawn = false;
+boolean respawned = false;
 boolean newGoldenApple = true;
 boolean newAppleTimer = true;
 boolean playing = false;
@@ -123,7 +125,7 @@ void setup(){
                   .setColorForeground(color(250,0,0))
                   .setColorActive(color(150,0,0))
                   .setFont(arial)
-                  .setLabel("Start");
+                  .setLabel("Start (S)");
 }
 
 void draw(){
@@ -358,10 +360,30 @@ void draw(){
   if(playing && newGreenApple){
     greenAppleX = int(random(16))*50+30;
     greenAppleY = int(random(16))*50+30;
+    for(int i=0; i<bodyX.length; i++){
+      if(bodyX[i] == greenAppleX+20 && bodyY[i] == greenAppleY+20){
+        respawn = true;
+      }
+    }
+    while(respawn){
+      for(int i=0; i<bodyX.length; i++){
+        if(bodyX[i] == greenAppleX+20 && bodyY[i] == greenAppleY+20){
+          greenAppleX = int(random(16))*50+30;
+          greenAppleY = int(random(16))*50+30;
+          respawned = true;
+        }
+      }
+      if(respawned){
+        respawned = false;
+        respawn = true;
+      }else{
+        respawn = false;
+      }
+    }
     newGreenApple = false;
   }
   image(greenApple,greenAppleX,greenAppleY);
-  
+
   //Golden apple eaten
   if(bodyX[0] == goldenAppleX+20 && bodyY[0] == goldenAppleY+20){
     score += 3;
@@ -509,6 +531,12 @@ void keyPressed(){
       reset();
       gameOver = false;
       titleScreen = true;
+    }
+  }
+  if(titleScreen){
+    if(key == 's'){
+      titleScreen = false;
+      playing = true;
     }
   }
 }
